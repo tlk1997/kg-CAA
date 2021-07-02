@@ -1,0 +1,146 @@
+<head>
+
+    <script src="https://unpkg.com/3d-force-graph"></script>
+    <script src="https://unpkg.com/neo4j-driver"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/css/mdui.min.css"
+    integrity="sha384-2PJ2u4NYg6jCNNpv3i1hK9AoAqODy6CdiC+gYiL2DVx+ku5wzJMFNdE3RoWfBIRP" crossorigin="anonymous" />
+    <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/js/mdui.min.js"
+    integrity="sha384-aB8rnkAu/GBsQ1q6dwTySnlrrbhqDwrDnpVHR2Wgm8pWLbwUnzDcIROX3VvCbaK+"
+    crossorigin="anonymous"></script>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <!--<script src="../../dist/3d-force-graph.js"></script>-->
+</head>
+<body>
+    <style type="text/css">
+        body {
+          background-image: url('../static/imgs/3.jpg');
+          background-repeat: no-repeat;
+          width: 100%;
+          height: 100%;
+          background-size: 100% 100%;
+        }
+      </style>
+
+
+
+      
+    <div class="mid">
+        
+        <div>
+            <center >
+                <input  class="heihei" style="width: 500px" type="text" maxlength="100" id="title" placeholder="增加文章标题" />
+                <button style="background-color: transparent; border-color: transparent; color:transparent; width:40px; height:25px; font-size:70%;">哈哈</button>
+                <p/>
+                <input  class="heihei" style="width: 500px" type="text" maxlength="10000" id="content" placeholder="增加文章内容" />
+                <button class="button2" id="#b" ">添加</button>
+                <p/>
+            </center>
+            
+        </div>
+        <center>
+            <input class="heihei" style="width: 500px" type="text" id="title2" placeholder="根据标题删除文章" />
+            <button class="button2" id="#c">删除</button>
+
+        </center>
+    </div>
+    
+    
+    
+
+    <script>
+        document.getElementById('#b').addEventListener('click', function () {
+            var title = document.getElementById("title").value;
+            var content = document.getElementById("content").value;
+
+            console.log(title)
+            $.ajax({
+                type: "post",
+                async: true, //同步执行  
+                url: "/add?title=" + title + "&content=" + content,
+                dataType: "text", //返回数据形式为json
+                success: function (data) {    
+                    if (data === "success"){
+                        window.alert("增加成功")    
+                    }
+                },
+                error: function (errorMsg) {
+        //
+                }
+            });
+        },true)
+
+        document.getElementById('#c').addEventListener('click', function () {
+            var title = document.getElementById("title2").value;
+            console.log(title)
+            $.ajax({
+                type: "post",
+                async: true, //同步执行  
+                url: "/delete_title?title=" + title,
+                dataType: "text", //返回数据形式为json
+                success: function (data) { 
+                    if (data === "success"){
+                        window.alert("删除成功")    
+                    }else{
+                        window.alert("删除失败")
+                    }
+                },
+                error: function (errorMsg) {
+        //
+                }
+            });
+        })
+
+  </script>
+</body>
+
+<style>
+.heihei{
+  display: table-cell;
+  margin:0 auto;
+  width: 50%;
+  height: 5%;
+  color:white;
+  border-color: white;
+  border:2px solid;
+  background-color: transparent;
+  border-radius:25px; 
+  font-family: 宋体;
+  text-indent: 1em;
+  
+}
+input::-webkit-input-placeholder{
+            color:white;
+        }
+
+.mid{
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+
+    position: relative; /*脱离文档流*/
+    top: 40%; 
+    margin-top: -130px; 
+
+}
+.midd{
+    vertical-align:middle;
+}
+.button2{
+    position: relative;
+    left : 30px;
+    background-color: rgba(255, 255, 255, 0.4);  
+    border-color: transparent;  
+    color: rgb(255,255,255);  
+    /* -moz-border-radius: 10px;   */
+    /* -webkit-border-radius: 10px;   */
+    border-radius: 2px;  
+    /* -khtml-border-radius: 10px; */
+    border: 0px solid white;
+    font-size: 70%; 
+    width:40px;
+
+    height:25px; 
+}
+
+</style>

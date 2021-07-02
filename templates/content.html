@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/vue/latest/vue.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/botui/build/botui.min.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script> 
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/botui/build/botui.min.css">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/botui/build/botui-theme-default.css">
+
+  <meta charset="UTF-8">
+  <title>文章内容</title>
+
+</head>
+
+<body>
+  <style type="text/css">
+    body {
+      background-image: url('../static/imgs/3.jpg');
+      background-repeat: no-repeat;
+      width: 100%;
+      height: 100%;
+      background-size: 100% 100%;
+    }
+  </style>
+
+  <center>
+    <h1 style="color: transparent;">dsds </h1>
+    <h1 style="color: transparent;">dsds </h1>
+    <h1 style="color: transparent;">dsds </h1>
+
+  </center>
+  
+  <div class="heihei" style="color: white;" id="box"></div>
+  
+  <div class="botui-app-container" id="hello-world">
+    <bot-ui></bot-ui>
+  </div>
+  <script src="https://cdn.jsdelivr.net/vue/latest/vue.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/botui/build/botui.js"></script>
+  <script> 
+      var content = localStorage.getItem("content")
+      var content2 = "\n" + content
+      box.innerText = content2
+  </script>
+</body>
+
+<style>
+.heihei{
+  display: block;
+    /* margin:0px auto;
+    width: 40%;
+     */
+    width: 40%;
+    margin: 0 auto;
+
+    /* border:2px solid; */
+    background: linear-gradient(rgb(0,95,234),rgb(0, 0, 0));;
+    border-radius:20px; 
+    color: rgb(255, 255, 255);
+    font-family: 宋体;
+    /* border-color: rgb(63, 63, 63); */
+    text-indent: 2em;
+     
+     
+}
+.mid{
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+
+    /* position: relative; 
+    top: 40%; 
+    margin-top: -30px;  */
+
+}
+.center{
+    display: table;
+    width: 50%;
+}
+.center_text{
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+}
+</style>
+
+</html>
+
+

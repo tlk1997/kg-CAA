@@ -1,0 +1,257 @@
+<head>
+  <style>
+    body {
+      margin: 0;
+    }
+  </style>
+
+  <script src="https://unpkg.com/3d-force-graph"></script>
+  <script src="https://unpkg.com/neo4j-driver"></script>
+  <script src="https://unpkg.com/three"></script>
+
+  <script src="https://unpkg.com/three-spritetext"></script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/css/mdui.min.css"
+    integrity="sha384-2PJ2u4NYg6jCNNpv3i1hK9AoAqODy6CdiC+gYiL2DVx+ku5wzJMFNdE3RoWfBIRP" crossorigin="anonymous" />
+  <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/js/mdui.min.js"
+    integrity="sha384-aB8rnkAu/GBsQ1q6dwTySnlrrbhqDwrDnpVHR2Wgm8pWLbwUnzDcIROX3VvCbaK+"
+    crossorigin="anonymous"></script>
+
+  <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdn.staticfile.org/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+
+  <!--<script src="../../dist/3d-force-graph.js"></script>-->
+
+</head>
+
+<body>
+  <center>
+    <div style="background-color: black;">
+      <!-- <input  type="text" name="name" id="name"> -->
+      <!-- <textarea data-role="textarea" data-append="<span class='mif-leanpub'></span>" name='name'></textarea> -->
+      <div class="mdui-textfield">
+        <input class="mdui-textfield-input" type="text" id="name" name="name" placeholder="中国美术学院" />
+      </div>
+      <button class="mdui-btn mdui-btn-raised mdui-ripple fontset" id="#c"">增删文章</button>
+      <button class="mdui-btn mdui-btn-raised mdui-ripple fontset" id="#b"">搜索</button>
+    </div>
+  </center>
+
+  <div id="3d-graph">
+  </div>
+
+  <div id="3d-graph2">
+  </div>
+  <script type="module">
+    import {UnrealBloomPass} from 'https://cdn.skypack.dev/three/examples/jsm/postprocessing/UnrealBloomPass.js';
+
+    function show(sql) {
+
+      const elem = document.getElementById('3d-graph');
+      const driver = neo4j.driver("bolt://47.97.126.45", neo4j.auth.basic("neo4j", "hzxx971221"));
+      const session = driver.session({ database: "neo4j" });;
+
+      const start = new Date()
+      sql += ' RETURN { id: id(n), label:head(labels(n)), community:n.community, caption:n.name, size:n.pagerank , node_size:n.node_size} as source, { id: id(m), label:head(labels(m)), community:m.community, caption:m.name, size:m.pagerank, node_size:m.node_size } as target, {weight:r.weight, type:type(r), community:case when n.community < m.community then n.community else m.community end} as rel LIMIT 5000'
+
+      console.log(sql)
+      session
+        .run(sql)
+        .then(function (result) {
+          const nodes = {}
+          const links = result.records.map(r => {
+            var source = r.get('source'); source.id = source.id.toNumber();
+            nodes[source.id] = source;
+            var target = r.get('target'); target.id = target.id.toNumber();
+            nodes[target.id] = target;
+            var rel = r.get('rel'); if (rel.weight) { rel.weight = rel.weight.toNumber(); }
+            return Object.assign({ source: source.id, target: target.id }, rel);
+          });
+          session.close();
+          console.log(links.length + " links loaded in " + (new Date() - start) + " ms.")
+          const gData = { nodes: Object.values(nodes), links: links }
+          console.log(gData)
+          const Graph = ForceGraph3D()(elem)
+            .graphData(gData)
+            .nodeAutoColorBy('community')
+            .nodeVal('node_size')
+            .backgroundColor('#000000')
+            .linkAutoColorBy('community')
+            .linkWidth(1)
+            .linkDirectionalParticles('weight') // number of particles
+            .linkDirectionalParticleSpeed(0.001) // slow down
+            .nodeLabel(node => `${node.label}: ${node.caption}`)
+            .onNodeHover(node => elem.style.cursor = node ? 'pointer' : null)
+            .nodeResolution(32)
+            .nodeThreeObject(node => {
+              if(node.community.low === 0){
+                node.color = "#ffffff"
+              } 
+            })
+            .onNodeClick(node => {
+              const caption = node.caption
+              $.ajax({
+                type: "post",
+                async: true, //同步执行  
+                url: "/select_article?caption=" + caption,
+                dataType: "json", //返回数据形式为json
+                success: function (data) {
+                  var content = data['content']
+                  localStorage.setItem("content",content)
+                  location.href="./content"
+                },
+                error: function (errorMsg) {
+                  
+                }
+              });
+
+              const distance = 40;
+              const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
+              Graph.cameraPosition(
+                { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }, // new position
+                node, // lookAt ({ x, y, z })
+                3000  // ms transition duration
+              );
+            });
+            const bloomPass = new UnrealBloomPass();
+            bloomPass.strength = 1.5;
+            bloomPass.radius = 1;
+            bloomPass.threshold = 0.1;
+            Graph.postProcessingComposer().addPass(bloomPass);
+        }
+        )
+        .catch(function (error) {
+          console.log(error);
+        });
+    }
+
+    document.getElementById('#c').addEventListener('click', function(){
+      window.location.href="./addanddelete"
+    })
+    
+
+    document.getElementById('#b').addEventListener('click', function () {
+      var name = document.getElementById("name").value;
+      console.log(name)
+      var ret;
+
+      $.ajax({
+        type: "post",
+        async: true, //同步执行  
+        url: "/tag_query?name=" + name,
+        dataType: "json", //返回数据形式为json
+        success: function (data) {
+          console.log(data['answer']);
+          console.log('nimahai')
+          ret = data['answer'];
+          show(ret);
+        },
+        error: function (errorMsg) {
+        //
+        }
+      });
+    },true)
+  </script>
+
+  <script>
+
+    const elem = document.getElementById('3d-graph2');
+    const driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "taoliankuan"));
+    const session = driver.session({ database: "neo4j" });;
+    const start = new Date()
+    session
+    .run('MATCH (n)-[r:BELONG]->(m) RETURN { id: id(n), label:head(labels(n)), community:n.community, caption:n.name, size:n.node_size } as source, { id: id(m), label:head(labels(m)), community:m.community, caption:m.name, size:m.node_size } as target, {weight:r.weight, type:type(r), community:case when n.community < m.community then n.community else m.community end} as rel LIMIT $limit', {limit: neo4j.int(5000)})
+      .then(function (result) {
+        const nodes = {}
+        const links = result.records.map(r => {
+          var source = r.get('source'); source.id = source.id.toNumber();
+          nodes[source.id] = source;
+          var target = r.get('target'); target.id = target.id.toNumber();
+          nodes[target.id] = target;
+          var rel = r.get('rel'); if (rel.weight) { rel.weight = rel.weight.toNumber(); }
+          return Object.assign({ source: source.id, target: target.id }, rel);
+        });
+        session.close();
+        console.log(links.length + " links loaded in " + (new Date() - start) + " ms.")
+        const gData = { nodes: Object.values(nodes), links: links }
+        const Graph = ForceGraph3D()(elem)
+          .graphData(gData)
+          .nodeAutoColorBy('community')
+          .nodeVal(4)
+          .linkAutoColorBy('community')
+          .linkWidth(0)
+          .linkDirectionalParticles('weight')
+          .linkDirectionalParticleSpeed('weight')
+          .nodeLabel(node => `${node.label}: ${node.caption}`)
+          .onNodeHover(node => elem.style.cursor = node ? 'pointer' : null)
+          .nodeThreeObject(node => {
+            if(node.community.low === 0){
+              node.color = "#ffffff"
+            }
+          })
+          .onNodeClick(node => {
+              // Aim at node from outside it
+              const caption = node.caption
+              $.ajax({
+                type: "post",
+                async: true, //同步执行  
+                url: "/select_article?caption=" + caption,
+                dataType: "json", //返回数据形式为json
+                success: function (data) {
+                  var content = data['content']
+                  localStorage.setItem("content",content)
+                  // $.cookie("content",content);
+                  // window.alert(content)
+
+                  location.href="./content"
+
+                },
+                error: function (errorMsg) {
+                  //
+                }
+              });
+            
+              const distance = 40;
+              const distRatio = 1 + distance / Math.hypot(node.x, node.y, node.z);
+              Graph.cameraPosition(
+                { x: node.x * distRatio, y: node.y * distRatio, z: node.z * distRatio }, // new position
+                node, // lookAt ({ x, y, z })
+                3000  // ms transition duration
+              );
+            });
+          
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  </script>
+</body>
+
+<style>
+  .mdui-textfield-input {
+    width: 50%;
+    border:2px solid;
+
+    border-radius:25px; 
+
+    border-color: #ffffff;
+    text-indent: 2em;
+    color: white;
+  }
+
+  .name {
+    margin: 0 3cm 0 3cm;
+    font-size: 23px;
+  }
+
+  .button_input {
+    background-color: #ffffff;
+    border-color: #ffffff;
+    border-radius: 10px;
+    font-size: 23px;
+    
+  }
+  .fontset{
+    color:rgb(196, 194, 194);
+  }
+</style>

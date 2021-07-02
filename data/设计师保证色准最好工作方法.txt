@@ -1,0 +1,10 @@
+设计师保证色准最好工作方法
+关于色域 作为一名设计人员 以下校样工作流分享到大家 
+
+场景1:照片素材编辑 工作空间 adobe RGB/prophoto RGB（最大宽容度的一种色彩空间） 指定色彩空间（指定上个设备的色彩空间） srgb 转换为配置文件 adobe RGB/prophoto rgb 编辑素材 保存psd 转换为配置文件 srgb 导出；
+
+场景2：位图设计 工作空间srgb/adobe RGB 指定色彩空间srgb/adobe RGB 设计位图 保存psd 转换为配置文件 srgb 导出；
+
+场景3：绘画 工作空间 adobe RGB/prophoto RGB 指定色彩空间 adobe RGB/prophoto rgb 绘画 保存psd 转换为配置文件 srgb 导出；
+
+最后祝全体同仁安康
